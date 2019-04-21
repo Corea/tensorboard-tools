@@ -13,6 +13,8 @@ import psutil  # pip install psutil
 parser = argparse.ArgumentParser(description=r'''
 Launch tensorboard on multiple directories in an easy way.
 ''')
+parser.add_argument('--host', default=None, type=str,
+                    help='The host to use for tensorboard')
 parser.add_argument('--port', default=6006, type=int,
                     help='The port to use for tensorboard')
 parser.add_argument('--quiet', '-q', action='store_true',
@@ -110,6 +112,8 @@ def main():
            # TODO make additional TF parameters configurable
            '--samples_per_plugin', 'images=100',
            ]
+    if args.host is not None:
+        cmd += ['--host', args.host]
     if args.quiet:
         cmd += [' 2>/dev/null']
 
