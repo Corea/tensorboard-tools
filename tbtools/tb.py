@@ -5,6 +5,7 @@ from __future__ import print_function
 import subprocess
 import argparse
 import os.path
+from pathlib import Path
 import sys
 import socket
 import contextlib
@@ -83,9 +84,19 @@ def scan_train_dirs(*patterns):
 
     return list(sorted(set(dirs)))
 
+
+def is_dir(path):
+    return (
+        os.path.isdir(path)
+        or path.startswith("gs://")
+        or path.startswith("s3://")
+        or path.startswith("/cns/")
+    )
+
+
 def main():
     args, unknown_args = parser.parse_known_args()
-    args.dirs = [s for s in args.dirs if os.path.isdir(s)]
+    args.dirs = [s for s in args.dirs if is_dir(s)]
 
     if args.auto is not None:  # -- auto flag given
         if args.dirs:
@@ -108,7 +119,7 @@ def main():
 
     cmd = ['tensorboard',
            '--port', str(port),
-           '--logdir', ','.join(["%s:%s" % (os.path.basename(s), s) for s in args.dirs]),
+           '--logdir', ','.join(["%s:%s" % (Path(s).name, s) for s in args.dirs]),
            # TODO make additional TF parameters configurable
            '--samples_per_plugin', 'images=100',
            ]
@@ -121,7 +132,7 @@ def main():
     print('', flush=True)
 
     # Change tmux pane/window title
-    title_msg = u"(tb:%d) %s" % (port, " ".join([os.path.basename(s) for s in args.dirs]))
+    title_msg = u"(tb:%d) %s" % (port, " ".join([Path(s).name for s in args.dirs]))
     sys.stdout.buffer.write(b'\033]2;' + title_msg.encode() + b'\007')
     sys.stdout.flush()
 
